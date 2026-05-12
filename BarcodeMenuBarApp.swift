@@ -50,11 +50,11 @@ final class AppState: ObservableObject {
         if let value = pasteboard.string(forType: .string), !value.isEmpty {
             barcodeString = value
             barcodeImage = generateImage(for: value)
-            statusMessage = "Ready"
+            statusMessage = "就绪"
         } else {
             barcodeString = ""
             barcodeImage = nil
-            statusMessage = "Clipboard has no text"
+            statusMessage = "剪贴板没有文本"
         }
     }
 
@@ -63,7 +63,7 @@ final class AppState: ObservableObject {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.writeObjects([image])
-        statusMessage = "Copied image"
+        statusMessage = "已复制图像"
     }
 
     func refreshImage() {
@@ -91,7 +91,7 @@ final class AppState: ObservableObject {
 
     func startRecordingUI() {
         isRecordingShortcut = true
-        recordingHint = "Press a key combo, Esc to cancel"
+        recordingHint = "按下一个快捷键组合，按 Esc 取消"
     }
 
     func stopRecordingUI(status: String) {
@@ -201,21 +201,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
 
     private func handleRecordingEvent(_ event: NSEvent) -> NSEvent? {
         if event.keyCode == UInt16(kVK_Escape) {
-            appState.stopRecordingUI(status: "Shortcut unchanged")
+            appState.stopRecordingUI(status: "快捷键未改变")
             removeRecordingMonitors()
             return nil
         }
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         let carbonModifiers = HotKeyFormatter.carbonModifiers(from: modifiers)
         if carbonModifiers == 0 {
-            appState.statusMessage = "Use at least one modifier"
+            appState.statusMessage = "至少使用一个修饰键"
             return nil
         }
         let hotKey = HotKey(keyCode: UInt32(event.keyCode), modifiers: carbonModifiers)
         saveHotKey(hotKey)
         registerHotKey(hotKey)
         appState.shortcutDisplay = HotKeyFormatter.displayString(for: hotKey)
-        appState.stopRecordingUI(status: "Shortcut updated")
+        appState.stopRecordingUI(status: "快捷键已更新")
         removeRecordingMonitors()
         return nil
     }
@@ -357,7 +357,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(appState.showQRCode ? "QR Code" : "Code 128 Barcode")
+            Text(appState.showQRCode ? "二维码" : "Code 128 条形码")
                 .font(.headline)
 
             if let image = appState.barcodeImage {
@@ -370,7 +370,7 @@ struct ContentView: View {
                     .padding(.vertical, 4)
 
                 HStack(spacing: 8) {
-                    Text("Size")
+                    Text("大小")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
 
@@ -386,7 +386,7 @@ struct ContentView: View {
                     }
                 }
             } else {
-                Text("No barcode")
+                Text("无条形码")
                     .foregroundStyle(.secondary)
             }
 
@@ -397,19 +397,19 @@ struct ContentView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Button(appState.showQRCode ? "Show Code 128" : "Show QR") {
+                Button(appState.showQRCode ? "显示 Code 128" : "显示二维码") {
                     appState.showQRCode.toggle()
                     appState.refreshImage()
                     appState.updatePopoverSize?()
                 }
 
-                Button("Copy Image") {
+                Button("复制图像") {
                     appState.copyBarcodeImage()
                 }
                 .disabled(appState.barcodeImage == nil)
 
                 HStack(spacing: 8) {
-                    Button(appState.isRecordingShortcut ? "Recording..." : "Change Shortcut") {
+                    Button(appState.isRecordingShortcut ? "录制中..." : "更改快捷键") {
                         appState.startRecordingShortcut?()
                     }
                     .disabled(appState.isRecordingShortcut)
@@ -430,7 +430,7 @@ struct ContentView: View {
             }
 
             HStack(spacing: 8) {
-                Button("Quit") {
+                Button("退出") {
                     appState.quitApp?()
                 }
                 .buttonStyle(.bordered)
